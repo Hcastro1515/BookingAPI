@@ -1,0 +1,49 @@
+# Ignore build output
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+*.user
+*.aps
+*.ncb
+*.opendb
+*.suo
+*.sln.docstates
+
+# ReSharper files
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# NuGet
+packages/
+*.nupkg
+*.pdb
+*.dll
+*.cache
+*.exe
+*.suo
+*.user
+*.sln.docstates
+
+# App settings
+appsettings.json
+appsettings.Development.json
