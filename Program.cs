@@ -3,12 +3,10 @@ using AlestheticApi.Endpoints;
 using AlestheticApi.Repository;
 using AlestheticApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
-using Auth0.AspNetCore.Authentication;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,6 +64,6 @@ app.ConfigureCustomerEndpoint();
 app.ConfigureServiceEndpoint();
 app.ConfigureEmployeeEndpoint();
 app.ConfigureAppointmentEndpoint();
-app.ConfigureAuthenticationEndpoint(builder.Configuration);
+app.ConfigureAuthEndpoint(builder.Configuration);
 
 app.Run();

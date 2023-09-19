@@ -143,6 +143,29 @@ namespace AlestheticApi.Migrations
                     b.ToTable("Services");
                 });
 
+            modelBuilder.Entity("AlestheticApi.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("AlestheticApi.Models.Appointment", b =>
                 {
                     b.HasOne("AlestheticApi.Models.Customer", "Customer")

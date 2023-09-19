@@ -10,6 +10,7 @@ public class APIResponse
     }
 
     public bool IsSuccess { get; set; }
+    public string token { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public object? Result { get; set; }
     public HttpStatusCode StatusCode { get; set; }

@@ -51,10 +51,10 @@ public static class AppointmentEndpoint
     }
 
     // GetAllApointments method
-    private async static Task<IResult> CreateAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> _logger, IMapper _map, [FromBody] AppointmentDTO appointmentDTO, AlestheticDataContext _context)
+    private static async Task<IResult> CreateAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> logger, IMapper map, [FromBody] AppointmentDTO appointmentDto, AlestheticDataContext context)
     {
         var validator = new AppointmentValidator();
-        var validationResult = validator.Validate(appointmentDTO);
+        var validationResult = await validator.ValidateAsync(appointmentDto);
 
         if (!validationResult.IsValid)
         {
@@ -69,7 +69,7 @@ public static class AppointmentEndpoint
 
         try
         {
-            var existingAppointment = await _context.Appointments.FirstOrDefaultAsync(a => a.AppointmentDateTime == appointmentDTO.AppointmentDateTime);
+            var existingAppointment = await context.Appointments.FirstOrDefaultAsync(a => a.AppointmentDateTime == appointmentDto.AppointmentDateTime);
             if (existingAppointment != null)
             {
                 return Results.BadRequest(new APIResponse
@@ -80,38 +80,38 @@ public static class AppointmentEndpoint
                 });
             }
 
-            var appointment = _map.Map<Appointment>(appointmentDTO);
-            appointment.Customer = await _context.Customers.FindAsync(appointmentDTO.CustomerId);
-            appointment.Employee = await _context.Employees.FindAsync(appointmentDTO.EmployeeId);
-            appointment.Service = await _context.Services.FindAsync(appointmentDTO.ServiceId);
+            var appointment = map.Map<Appointment>(appointmentDto);
+            appointment.Customer = await context.Customers.FindAsync(appointmentDto.CustomerId);
+            appointment.Employee = await context.Employees.FindAsync(appointmentDto.EmployeeId);
+            appointment.Service = await context.Services.FindAsync(appointmentDto.ServiceId);
             await appointmentRepository.CreateAsync(appointment);
             await appointmentRepository.SaveAsync();
 
-            var createdAppointmentDTO = _map.Map<AppointmentDTO>(appointment);
+            var createdAppointmentDto = map.Map<AppointmentDTO>(appointment);
 
             return Results.Ok(new APIResponse
             {
                 IsSuccess = true,
                 Message = "Appointment created successfully",
                 StatusCode = HttpStatusCode.Created,
-                Result = createdAppointmentDTO
+                Result = createdAppointmentDto
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while creating the appointment");
+            logger.LogError(ex, "An error occurred while creating the appointment");
             return Results.StatusCode((int)HttpStatusCode.InternalServerError);
         }
     }
 
-    private async static Task<IResult> GetAppointmentById(AlestheticDataContext _context, ILogger<Program> _logger, int id)
+    private static async Task<IResult> GetAppointmentById(AlestheticDataContext context, ILogger<Program> logger, int id)
     {
         APIResponse response = new();
 
         try
         {
-            _logger.Log(LogLevel.Information, "GetAppointmentById called");
-            var appointment = await _context.Appointments
+            logger.Log(LogLevel.Information, "GetAppointmentById called");
+            var appointment = await context.Appointments
             .Include(x => x.Customer)
             .Include(x => x.Employee)
             .Include(x => x.Service)
@@ -133,20 +133,20 @@ public static class AppointmentEndpoint
         }
         catch (System.Exception)
         {
-            _logger.LogError("An error occurred while getting the appointment");
+            logger.LogError("An error occurred while getting the appointment");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting the appointment" };
             return Results.StatusCode((int)HttpStatusCode.InternalServerError);
         }
     }
-    private async static Task<IResult> GetAllAppointments(ILogger<Program> _logger, AlestheticDataContext _context, IMapper _map, int pageNumber, int pageSize)
+    private static async Task<IResult> GetAllAppointments(ILogger<Program> logger, AlestheticDataContext context, IMapper map, int pageNumber, int pageSize)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetAllAppointments called");
-            int totalCount = await _context.Appointments.CountAsync();
+            logger.Log(LogLevel.Information, "GetAllAppointments called");
+            int totalCount = await context.Appointments.CountAsync();
             int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
             if (pageNumber < 1 || pageNumber > totalPages)
@@ -157,7 +157,7 @@ public static class AppointmentEndpoint
                 return Results.NotFound(response);
             }
 
-            var appointments = await _context.Appointments
+            var appointments = await context.Appointments
             .Include(x => x.Customer)
             .Include(x => x.Employee)
             .Include(x => x.Service)
@@ -165,7 +165,7 @@ public static class AppointmentEndpoint
             .Take(pageSize)
             .ToListAsync();
 
-            if (appointments == null || appointments.Count == 0)
+            if (appointments.Count == 0)
             {
                 response.IsSuccess = false;
                 response.StatusCode = HttpStatusCode.NotFound;
@@ -181,7 +181,7 @@ public static class AppointmentEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting appointments");
+            logger.LogError(ex, "An error occurred while getting appointments");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting the appointments" };
@@ -189,56 +189,7 @@ public static class AppointmentEndpoint
         }
     }
 
-    // private async static Task<IResult> CreateAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> _logger, IMapper _map, [FromBody] AppointmentDTO appointmentDTO, AlestheticDataContext _context)
-    // {
-    //     APIResponse response = new();
-
-    //     try
-    //     {
-    //         var validator = new AppointmentValidator();
-    //         var validationResult = await validator.ValidateAsync(appointmentDTO);
-
-    //         if (!validationResult.IsValid)
-    //         {
-    //             response.IsSuccess = false;
-    //             response.StatusCode = HttpStatusCode.BadRequest;
-    //             response.ErrorMessages = validationResult.Errors.Select(x => x.ErrorMessage).ToList();
-    //             return Results.BadRequest(response);
-    //         }
-
-    //         var existingAppointment = await _context.Appointments.Where(a => a.AppointmentDateTime == appointmentDTO.AppointmentDateTime).FirstOrDefaultAsync();
-    //         if (existingAppointment != null)
-    //         {
-    //             response.Message = "appointment already exists for that time and date";
-    //             return Results.BadRequest(response);
-    //         }
-
-    //         Appointment appointment = _map.Map<Appointment>(appointmentDTO);
-    //         appointment.Customer = await _context.Customers.Where(c => c.CustomerId == appointmentDTO.CustomerId).FirstOrDefaultAsync();
-    //         appointment.Employee = await _context.Employees.Where(e => e.EmployeeId == appointmentDTO.EmployeeId).FirstOrDefaultAsync();
-    //         appointment.Service = await _context.Services.Where(s => s.ServiceId == appointmentDTO.ServiceId).FirstOrDefaultAsync();
-    //         await appointmentRepository.CreateAsync(appointment);
-    //         await appointmentRepository.SaveAsync();
-
-    //         AppointmentDTO appointmentDto = _map.Map<AppointmentDTO>(appointment);
-
-
-    //         response.Result = appointmentDto;
-    //         response.IsSuccess = true;
-    //         response.StatusCode = HttpStatusCode.Created;
-    //         return Results.Ok(response);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "An error occurred while creating the appointment");
-    //         response.IsSuccess = false;
-    //         response.StatusCode = HttpStatusCode.InternalServerError;
-    //         response.ErrorMessages = new() { "An error occurred while creating appointment" };
-    //         return Results.StatusCode((int)HttpStatusCode.InternalServerError);
-    //     }
-    // }
-
-    private async static Task<IResult> RemoveAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> _logger, IMapper _map, int id)
+    private static async Task<IResult> RemoveAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> logger, IMapper map, int id)
     {
         APIResponse response = new();
         try
@@ -262,7 +213,7 @@ public static class AppointmentEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while removing appointment");
+            logger.LogError(ex, "An error occurred while removing appointment");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while removing appointment" };
@@ -270,7 +221,7 @@ public static class AppointmentEndpoint
         }
     }
 
-    private async static Task<IResult> UpdateAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> _logger, IMapper _map, [FromBody] AppointmentDTO appointmentDTO, int id)
+    private static async Task<IResult> UpdateAppointment(ICRUDRepository<Appointment> appointmentRepository, ILogger<Program> logger, IMapper map, [FromBody] AppointmentDTO appointmentDto, int id)
     {
         APIResponse response = new();
         try
@@ -284,17 +235,17 @@ public static class AppointmentEndpoint
                 return Results.NotFound(response);
             }
 
-            existingAppointment.ServiceId = appointmentDTO.ServiceId;
-            existingAppointment.CustomerId = appointmentDTO.CustomerId;
-            existingAppointment.EmployeeId = appointmentDTO.EmployeeId;
-            existingAppointment.AppointmentDateTime = appointmentDTO.AppointmentDateTime;
-            existingAppointment.Notes = appointmentDTO.Notes;
-            existingAppointment.Status = appointmentDTO.Status;
+            existingAppointment.ServiceId = appointmentDto.ServiceId;
+            existingAppointment.CustomerId = appointmentDto.CustomerId;
+            existingAppointment.EmployeeId = appointmentDto.EmployeeId;
+            existingAppointment.AppointmentDateTime = appointmentDto.AppointmentDateTime;
+            existingAppointment.Notes = appointmentDto.Notes;
+            existingAppointment.Status = appointmentDto.Status;
 
             await appointmentRepository.UpdateAsync(existingAppointment);
             await appointmentRepository.SaveAsync();
 
-            AppointmentDTO AppointmentDto = _map.Map<AppointmentDTO>(existingAppointment);
+            AppointmentDTO AppointmentDto = map.Map<AppointmentDTO>(existingAppointment);
 
             response.Result = AppointmentDto;
             response.IsSuccess = true;
@@ -304,7 +255,7 @@ public static class AppointmentEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while updating the appointment");
+            logger.LogError(ex, "An error occurred while updating the appointment");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while updating the appointment" };

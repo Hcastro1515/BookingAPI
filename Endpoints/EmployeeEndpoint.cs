@@ -26,7 +26,7 @@ public static class EmployeeEndpoint
         .Produces<APIResponse>(201)
         .Produces(400);
 
-        app.MapDelete("/api/employee/{id:int}", DeleteEmployee)
+        app.MapDelete("/api/employee/{id:int}/{_map}", DeleteEmployee)
         .WithName("DeleteEmployee")
         .Produces<APIResponse>(200)
         .Produces(500);
@@ -38,12 +38,12 @@ public static class EmployeeEndpoint
         .Produces(500);
     }
 
-    private async static Task<IResult> GetEmployeeById(ICRUDRepository<Employee> employeeRepository, ILogger<Program> _logger, int id)
+    private static async Task<IResult> GetEmployeeById(ICRUDRepository<Employee> employeeRepository, ILogger<Program> logger, int id)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetEmployeeById called");
+            logger.Log(LogLevel.Information, "GetEmployeeById called");
             response.Result = await employeeRepository.GetByIdAsync(id);
 
             if (response.Result == null)
@@ -60,19 +60,19 @@ public static class EmployeeEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting the employee by id");
+            logger.LogError(ex, "An error occurred while getting the employee by id");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting employee by id" };
             return Results.StatusCode((int)HttpStatusCode.InternalServerError);
         }
     }
-    private async static Task<IResult> GetAllEmployees(ICRUDRepository<Employee> employeeRepository, ILogger<Program> _logger)
+    private static async Task<IResult> GetAllEmployees(ICRUDRepository<Employee> employeeRepository, ILogger<Program> logger)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetAllServices called");
+            logger.Log(LogLevel.Information, "GetAllServices called");
             response.Result = await employeeRepository.GetAllAsync();
 
             if (response.Result == null)
@@ -88,7 +88,7 @@ public static class EmployeeEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting the employee");
+            logger.LogError(ex, "An error occurred while getting the employee");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting the employees" };
@@ -96,7 +96,7 @@ public static class EmployeeEndpoint
         }
     }
 
-    private async static Task<IResult> CreateEmployee(ICRUDRepository<Employee> employeeRepository, ILogger<Program> _logger, IMapper _map, [FromBody] EmployeeDTO employeeDTO)
+    private static async Task<IResult> CreateEmployee(ICRUDRepository<Employee> employeeRepository, ILogger<Program> logger, IMapper map, [FromBody] EmployeeDTO employeeDTO)
     {
         APIResponse response = new();
 
@@ -109,12 +109,12 @@ public static class EmployeeEndpoint
                 return Results.BadRequest(response);
             }
 
-            Employee employee = _map.Map<Employee>(employeeDTO);
+            Employee employee = map.Map<Employee>(employeeDTO);
 
             await employeeRepository.CreateAsync(employee);
             await employeeRepository.SaveAsync();
 
-            EmployeeDTO serviceDto = _map.Map<EmployeeDTO>(employee);
+            EmployeeDTO serviceDto = map.Map<EmployeeDTO>(employee);
 
 
             response.Result = serviceDto;
@@ -124,7 +124,7 @@ public static class EmployeeEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while creating the employees");
+            logger.LogError(ex, "An error occurred while creating the employees");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while creating employees" };
@@ -132,7 +132,7 @@ public static class EmployeeEndpoint
         }
     }
 
-    private async static Task<IResult> DeleteEmployee(ICRUDRepository<Employee> employeeRepository, ILogger<Program> _logger, IMapper _map, int id)
+    private static async Task<IResult> DeleteEmployee(ICRUDRepository<Employee> employeeRepository, ILogger<Program> logger, IMapper _map, int id)
     {
         APIResponse response = new();
         try
@@ -156,7 +156,7 @@ public static class EmployeeEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while deleting the employee");
+            logger.LogError(ex, "An error occurred while deleting the employee");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while deleting the employee" };
@@ -164,7 +164,7 @@ public static class EmployeeEndpoint
         }
     }
 
-    private async static Task<IResult> UpdateEmployee(ICRUDRepository<Employee> employeeRepository, ILogger<Program> _logger, IMapper _map, [FromBody] Employee employeeDTO, int id)
+    private static async Task<IResult> UpdateEmployee(ICRUDRepository<Employee> employeeRepository, ILogger<Program> logger, IMapper map, [FromBody] Employee employeeDTO, int id)
     {
         APIResponse response = new();
         try
@@ -186,7 +186,7 @@ public static class EmployeeEndpoint
             await employeeRepository.UpdateAsync(existingEmployee);
             await employeeRepository.SaveAsync();
 
-            ServiceDTO serviceDto = _map.Map<ServiceDTO>(existingEmployee);
+            ServiceDTO serviceDto = map.Map<ServiceDTO>(existingEmployee);
 
             response.Result = serviceDto;
             response.IsSuccess = true;
@@ -196,7 +196,7 @@ public static class EmployeeEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while updating the employee");
+            logger.LogError(ex, "An error occurred while updating the employee");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while Updating the employee" };

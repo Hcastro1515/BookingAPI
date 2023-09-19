@@ -38,12 +38,12 @@ public static class ServiceEndpoint
         .Produces(500);
     }
 
-    private async static Task<IResult> GetServiceById(ICRUDRepository<Service> serviceRepository, ILogger<Program> _logger, int id)
+    private static async Task<IResult> GetServiceById(ICRUDRepository<Service> serviceRepository, ILogger<Program> logger, int id)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetServiceById called");
+            logger.Log(LogLevel.Information, "GetServiceById called");
             response.Result = await serviceRepository.GetByIdAsync(id);
 
             if (response.Result == null)
@@ -60,19 +60,19 @@ public static class ServiceEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting service by id");
+            logger.LogError(ex, "An error occurred while getting service by id");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting service by id" };
             return Results.StatusCode((int)HttpStatusCode.InternalServerError);
         }
     }
-    private async static Task<IResult> GetAllServices(ICRUDRepository<Service> serviceRepository, ILogger<Program> _logger)
+    private static async Task<IResult> GetAllServices(ICRUDRepository<Service> serviceRepository, ILogger<Program> logger)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetAllServices called");
+            logger.Log(LogLevel.Information, "GetAllServices called");
             response.Result = await serviceRepository.GetAllAsync();
 
             if (response.Result == null)
@@ -88,7 +88,7 @@ public static class ServiceEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting services");
+            logger.LogError(ex, "An error occurred while getting services");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting the services" };
@@ -96,7 +96,7 @@ public static class ServiceEndpoint
         }
     }
 
-    private async static Task<IResult> CreateService(ICRUDRepository<Service> serviceRepository,ILogger<Program> _logger, IMapper _map, [FromBody] ServiceDTO serviceDTO)
+    private static async Task<IResult> CreateService(ICRUDRepository<Service> serviceRepository,ILogger<Program> logger, IMapper map, [FromBody] ServiceDTO serviceDTO)
     {
         APIResponse response = new();
 
@@ -109,12 +109,12 @@ public static class ServiceEndpoint
                 return Results.BadRequest(response);
             }
 
-            Service service = _map.Map<Service>(serviceDTO);
+            Service service = map.Map<Service>(serviceDTO);
 
             await serviceRepository.CreateAsync(service);
             await serviceRepository.SaveAsync();
 
-            ServiceDTO serviceDto = _map.Map<ServiceDTO>(service);
+            ServiceDTO serviceDto = map.Map<ServiceDTO>(service);
 
 
             response.Result = serviceDto;
@@ -124,7 +124,7 @@ public static class ServiceEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while creating the service");
+            logger.LogError(ex, "An error occurred while creating the service");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while creating service" };
@@ -132,7 +132,7 @@ public static class ServiceEndpoint
         }
     }
 
-    private async static Task<IResult> DeleteService(ICRUDRepository<Service> serviceRepository, ILogger<Program> _logger, IMapper _map, int id)
+    private static async Task<IResult> DeleteService(ICRUDRepository<Service> serviceRepository, ILogger<Program> logger, IMapper map, int id)
     {
         APIResponse response = new();
         try
@@ -156,7 +156,7 @@ public static class ServiceEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while deleting service");
+            logger.LogError(ex, "An error occurred while deleting service");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() {"An error occurred while deleting service"};
@@ -164,7 +164,7 @@ public static class ServiceEndpoint
         }
     }
 
-    private async static Task<IResult> UpdateService(ICRUDRepository<Service> serviceRepository, ILogger<Program> _logger, IMapper _map, [FromBody] ServiceDTO serviceDTO, int id)
+    private static async Task<IResult> UpdateService(ICRUDRepository<Service> serviceRepository, ILogger<Program> logger, IMapper map, [FromBody] ServiceDTO serviceDTO, int id)
     {
         APIResponse response = new();
         try
@@ -186,7 +186,7 @@ public static class ServiceEndpoint
             await serviceRepository.UpdateAsync(existingService);
             await serviceRepository.SaveAsync();
 
-            ServiceDTO serviceDto = _map.Map<ServiceDTO>(existingService);
+            ServiceDTO serviceDto = map.Map<ServiceDTO>(existingService);
 
             response.Result = serviceDto;
             response.IsSuccess = true;
@@ -196,7 +196,7 @@ public static class ServiceEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while updating the service");
+            logger.LogError(ex, "An error occurred while updating the service");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while updating service" };

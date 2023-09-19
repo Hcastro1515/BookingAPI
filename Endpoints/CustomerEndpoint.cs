@@ -38,12 +38,12 @@ public static class CustomerEndpoint
         .Produces(500);
     }
 
-    private async static Task<IResult> GetCustomerById(ICRUDRepository<Customer> customerRepository, ILogger<Program> _logger, int id)
+    private static async Task<IResult> GetCustomerById(ICRUDRepository<Customer> customerRepository, ILogger<Program> logger, int id)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetCustomerById called");
+            logger.Log(LogLevel.Information, "GetCustomerById called");
             response.Result = await customerRepository.GetByIdAsync(id);
 
             if (response.Result == null)
@@ -60,19 +60,19 @@ public static class CustomerEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting customer by id");
+            logger.LogError(ex, "An error occurred while getting customer by id");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting customer by id" };
             return Results.StatusCode((int)HttpStatusCode.InternalServerError);
         }
     }
-    private async static Task<IResult> GetAllCustomers(ICRUDRepository<Customer> customerRepository, ILogger<Program> _logger)
+    private static async Task<IResult> GetAllCustomers(ICRUDRepository<Customer> customerRepository, ILogger<Program> logger)
     {
         APIResponse response = new();
         try
         {
-            _logger.Log(LogLevel.Information, "GetAllCustomers called");
+            logger.Log(LogLevel.Information, "GetAllCustomers called");
             response.Result = await customerRepository.GetAllAsync();
 
             if (response.Result == null)
@@ -88,7 +88,7 @@ public static class CustomerEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while getting customers");
+            logger.LogError(ex, "An error occurred while getting customers");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while getting customers" };
@@ -96,8 +96,8 @@ public static class CustomerEndpoint
         }
     }
 
-    private async static Task<IResult> CreateCustomer(ICRUDRepository<Customer> customerRepository,
-                                                            ILogger<Program> _logger, IMapper _map,
+    private static async Task<IResult> CreateCustomer(ICRUDRepository<Customer> customerRepository,
+                                                            ILogger<Program> logger, IMapper map,
                                                                 [FromBody] CustomerDTO customerDTO)
     {
         APIResponse response = new();
@@ -111,12 +111,12 @@ public static class CustomerEndpoint
                 return Results.BadRequest(response);
             }
 
-            Customer customer = _map.Map<Customer>(customerDTO);
+            Customer customer = map.Map<Customer>(customerDTO);
 
             await customerRepository.CreateAsync(customer);
             await customerRepository.SaveAsync();
 
-            CustomerDTO customerDto = _map.Map<CustomerDTO>(customer);
+            CustomerDTO customerDto = map.Map<CustomerDTO>(customer);
 
 
             response.Result = customerDto;
@@ -126,7 +126,7 @@ public static class CustomerEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while creating the customer");
+            logger.LogError(ex, "An error occurred while creating the customer");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while creating customer" };
@@ -134,7 +134,7 @@ public static class CustomerEndpoint
         }
     }
 
-    private async static Task<IResult> DeleteCustomer(ICRUDRepository<Customer> customerRepository, ILogger<Program> _logger, IMapper _map, int id)
+    private static async Task<IResult> DeleteCustomer(ICRUDRepository<Customer> customerRepository, ILogger<Program> logger, IMapper map, int id)
     {
         APIResponse response = new();
         try
@@ -158,7 +158,7 @@ public static class CustomerEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while deleting customer");
+            logger.LogError(ex, "An error occurred while deleting customer");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while deleting customer" };
@@ -166,7 +166,7 @@ public static class CustomerEndpoint
         }
     }
 
-    private async static Task<IResult> UpdateCustomer(ICRUDRepository<Customer> customerRepository, ILogger<Program> _logger, IMapper _map, [FromBody] CustomerDTO newCustomer, int id)
+    private static async Task<IResult> UpdateCustomer(ICRUDRepository<Customer> customerRepository, ILogger<Program> logger, IMapper map, [FromBody] CustomerDTO newCustomer, int id)
     {
         APIResponse response = new();
         try
@@ -189,7 +189,7 @@ public static class CustomerEndpoint
             await customerRepository.UpdateAsync(existingCustomer);
             await customerRepository.SaveAsync();
 
-            CustomerDTO customerDto = _map.Map<CustomerDTO>(existingCustomer);
+            CustomerDTO customerDto = map.Map<CustomerDTO>(existingCustomer);
 
             response.Result = customerDto;
             response.IsSuccess = true;
@@ -199,7 +199,7 @@ public static class CustomerEndpoint
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while updating customer");
+            logger.LogError(ex, "An error occurred while updating customer");
             response.IsSuccess = false;
             response.StatusCode = HttpStatusCode.InternalServerError;
             response.ErrorMessages = new() { "An error occurred while Updating customer" };
